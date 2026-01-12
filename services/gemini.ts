@@ -3,23 +3,25 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DrawingData } from "../types";
 
 export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> => {
+  // Pobieranie klucza z bezpiecznego środowiska Vercel
   const apiKey = process.env.API_KEY;
 
-  // Diagnostyka na start
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("KLUCZ_API_NIE_ZOSTAŁ_WYKRYTY_W_SYSTEMIE_VERCEL");
+    throw new Error("KRYTYCZNY_BRAK_KLUCZA: Vercel nie przekazał klucza API do aplikacji.");
   }
 
-  try {
-    const ai = new GoogleGenAI({ apiKey });
-    const model = 'gemini-2.5-flash-lite-latest'; // Najszybszy model dostępny
+  const ai = new GoogleGenAI({ apiKey });
+  
+  // Najnowszy model Gemini 3 Flash
+  const modelName = 'gemini-3-flash-preview';
 
+  try {
     const response = await ai.models.generateContent({
-      model: model,
+      model: modelName,
       contents: [
         {
           parts: [
-            { text: "Przeanalizuj rysunek techniczny. Znajdź bąbelki i wymiary. Wygeneruj 3 wyniki pomiarowe dla każdego. Zwróć JSON." },
+            { text: "Działaj jako ekspert metrologii CBM Polska. Wyodrębnij numery bąbelków, wymiary nominalne i tolerancje. Wygeneruj 3 przykładowe wyniki pomiarów mieszczące się w tolerancji. Zwróć dane w formacie JSON." },
             { inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] || imageBase64 } }
           ]
         }
@@ -53,12 +55,12 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       }
     });
 
-    const text = response.text;
-    if (!text) throw new Error("MODEL_ZWRÓCIŁ_PUSTĄ_ODPOWIEDŹ");
-    return JSON.parse(text) as DrawingData;
+    if (!response.text) throw new Error("AI_EMPTY_RESPONSE: Model nie zwrócił danych.");
+    return JSON.parse(response.text) as DrawingData;
   } catch (error: any) {
-    console.error("Błąd krytyczny AI:", error);
-    if (error.message?.includes("API_KEY_INVALID")) throw new Error("TWÓJ_KLUCZ_API_JEST_NIEPRAWIDŁOWY_LUB_WYGASŁ");
-    throw new Error(error.message || "NIEZNANY_BŁĄD_SERWERA_AI");
+    console.error("Szczegóły błędu AI:", error);
+    if (error.message?.includes("403")) throw new Error("BŁĄD_UPRAWNIEŃ: Twój klucz API nie ma dostępu do modelu Gemini 3.");
+    if (error.message?.includes("401")) throw new Error("BŁĄD_AUTORYZACJI: Klucz API jest nieprawidłowy.");
+    throw new Error(`BŁĄD_SYSTEMU: ${error.message || "Nieznany błąd komunikacji"}`);
   }
 };
