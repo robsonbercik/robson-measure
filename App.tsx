@@ -12,7 +12,6 @@ const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sprawdzanie czy klucz istnieje i pobieranie jego początku dla diagnostyki
   const rawKey = process.env.API_KEY || "";
   const keyExists = rawKey.length > 5;
   const keyHint = keyExists ? `${rawKey.substring(0, 4)}***` : "BRAK";
@@ -38,37 +37,36 @@ const App: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // EKRAN STARTOWY V4.0 - ŻÓŁTO-CZARNY (Nie do pomylenia ze starą wersją)
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6 font-mono border-[16px] border-black">
+      <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6 font-mono border-[16px] border-black text-black">
         <div className="max-w-2xl w-full bg-black text-white p-12 shadow-[20px_20px_0px_0px_rgba(0,0,0,0.3)]">
           <div className="border-b-4 border-yellow-400 pb-6 mb-8">
-            <h1 className="text-5xl font-black uppercase tracking-tighter italic">AutoMeasure <span className="text-yellow-400">V4.0</span></h1>
-            <p className="text-yellow-400 font-bold mt-2 tracking-widest">SYSTEM DIAGNOSTYCZNY CBM</p>
+            <h1 className="text-5xl font-black uppercase tracking-tighter italic">AutoMeasure <span className="text-yellow-400">V4.2</span></h1>
+            <p className="text-yellow-400 font-bold mt-2 tracking-widest uppercase">System Stabilny CBM</p>
           </div>
 
           <div className="space-y-6">
             <div className="bg-zinc-800 p-4 border-l-8 border-yellow-400">
-               <p className="text-xs uppercase text-zinc-500 font-bold mb-1">Status Środowiska Vercel:</p>
+               <p className="text-xs uppercase text-zinc-500 font-bold mb-1">Status API (Vercel):</p>
                <div className="flex justify-between items-center">
-                  <span className="font-bold">Wykryto Klucz API:</span>
+                  <span className="font-bold">Klucz w systemie:</span>
                   <span className={keyExists ? "text-green-400" : "text-red-500"}>
-                    {keyExists ? `TAK (${keyHint})` : "NIE - SPRAWDŹ USTAWIENIA"}
+                    {keyExists ? `WYKRYTO (${keyHint})` : "NIEWYKRYTY"}
                   </span>
                </div>
             </div>
 
             <button 
               onClick={() => setIsAuthorized(true)}
-              className="w-full bg-yellow-400 hover:bg-white text-black font-black py-8 text-2xl uppercase border-4 border-yellow-400 hover:border-white transition-all"
+              className="w-full bg-yellow-400 hover:bg-white text-black font-black py-8 text-2xl uppercase border-4 border-yellow-400 hover:border-white transition-all shadow-lg active:scale-95"
             >
               WEJDŹ DO SYSTEMU
             </button>
 
             {!keyExists && (
-              <div className="text-[10px] text-zinc-400 leading-relaxed">
-                UWAGA: Jeśli status klucza to NIE, dodaj API_KEY w Vercel -> Settings -> Environment Variables i wykonaj REDEPLOY.
+              <div className="text-[10px] text-zinc-400 leading-relaxed uppercase border border-zinc-700 p-4 rounded">
+                INSTRUKCJA: Jeśli klucza brak, dodaj zmienną API_KEY w Vercel (sekcja Settings / Environment Variables) i kliknij REDEPLOY.
               </div>
             )}
           </div>
@@ -78,40 +76,26 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-100 flex flex-col font-mono">
+    <div className="min-h-screen bg-zinc-100 flex flex-col font-mono text-black">
       <header className="bg-black text-white p-6 flex justify-between items-center border-b-8 border-yellow-400">
         <div className="flex items-center gap-4">
-           <div className="bg-yellow-400 text-black px-3 py-1 font-black">V4</div>
+           <div className="bg-yellow-400 text-black px-3 py-1 font-black">V4.2</div>
            <h1 className="font-black uppercase italic text-xl tracking-tighter">AutoMeasure <span className="text-yellow-400">Lab</span></h1>
         </div>
-        <button onClick={() => { setDrawingData(null); setErrorMessage(null); setIsAuthorized(false); }} className="text-yellow-400 hover:text-white font-bold text-xs uppercase underline">Resetuj Sesję</button>
+        <button onClick={() => { setDrawingData(null); setErrorMessage(null); setIsAuthorized(false); }} className="text-yellow-400 hover:text-white font-bold text-xs uppercase underline">Wyloguj</button>
       </header>
 
       <main className="flex-1 p-8 max-w-7xl mx-auto w-full">
-        {/* LOG BŁĘDÓW TECHNICZNYCH */}
         {errorMessage && (
           <div className="bg-white border-8 border-black p-8 mb-12 shadow-[12px_12px_0px_0px_rgba(239,68,68,1)]">
             <div className="flex items-center gap-4 text-red-600 mb-6">
                <div className="w-12 h-12 bg-red-600 text-white flex items-center justify-center text-3xl font-black">!</div>
-               <h3 className="text-2xl font-black uppercase">Błąd Krytyczny Analizy</h3>
+               <h3 className="text-2xl font-black uppercase tracking-tighter">Błąd Połączenia</h3>
             </div>
-            <div className="bg-zinc-100 p-6 border-2 border-zinc-200 mb-6">
-               <code className="text-red-600 font-bold break-all text-sm">{errorMessage}</code>
+            <div className="bg-zinc-100 p-6 border-2 border-zinc-200 mb-6 font-mono text-sm break-all">
+              {errorMessage}
             </div>
-            <div className="grid md:grid-cols-2 gap-8 text-xs font-bold text-zinc-600">
-               <div className="bg-yellow-50 p-6 border-2 border-yellow-200">
-                  <p className="mb-4 text-black font-black uppercase">MOŻLIWA PRZYCZYNA:</p>
-                  <p>Model Gemini 3 nie zaakceptował Twojego klucza lub klucz nie został poprawnie "wstrzyknięty" przez Vercel do kodu.</p>
-               </div>
-               <div className="bg-zinc-50 p-6 border-2 border-zinc-200">
-                  <p className="mb-4 text-black font-black uppercase">ROZWIĄZANIE:</p>
-                  <ol className="list-decimal list-inside space-y-2">
-                    <li>Sprawdź literówki w API_KEY na Vercel.</li>
-                    <li>Upewnij się, że klucz jest typu "Google AI Studio".</li>
-                    <li>Kliknij "Redeploy" na Vercel.</li>
-                  </ol>
-               </div>
-            </div>
+            <button onClick={() => setErrorMessage(null)} className="bg-black text-white px-6 py-2 uppercase font-black text-xs">Zamknij</button>
           </div>
         )}
 
@@ -121,36 +105,36 @@ const App: React.FC = () => {
               onClick={() => fileInputRef.current?.click()}
               className="w-full max-w-2xl bg-white border-8 border-black p-20 cursor-pointer hover:bg-yellow-50 transition-all text-center group shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]"
             >
-              <div className="text-6xl mb-8 group-hover:scale-125 transition-transform inline-block">📁</div>
-              <h2 className="text-3xl font-black uppercase mb-4">Wgraj Rysunek Techniczny</h2>
-              <p className="text-zinc-500 font-bold uppercase text-xs tracking-widest">Skanuj bąbelki za pomocą AI Gemini 3</p>
+              <div className="text-6xl mb-8 group-hover:scale-110 transition-transform inline-block">📋</div>
+              <h2 className="text-3xl font-black uppercase mb-4 tracking-tighter">Wgraj Rysunek (JPG)</h2>
+              <p className="text-zinc-500 font-bold uppercase text-xs tracking-widest">System CBM wyodrębni bąbelki automatycznie</p>
               <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
             </div>
           </div>
         ) : (
           <div className="grid lg:grid-cols-2 gap-12 animate-in fade-in duration-500">
-             <div className="bg-black p-4 shadow-[15px_15px_0px_0px_rgba(0,0,0,0.2)] border-4 border-black">
-                <img src={previewImage!} className="w-full h-auto border-2 border-zinc-800" alt="Podgląd" />
+             <div className="bg-black p-4 shadow-[15px_15px_0px_0px_rgba(0,0,0,0.1)] border-4 border-black">
+                <img src={previewImage!} className="w-full h-auto border-2 border-zinc-800" alt="Podgląd rysunku" />
              </div>
              
              <div className="space-y-8">
                 <div className="bg-white border-8 border-black p-8 shadow-[10px_10px_0px_0px_rgba(250,204,21,1)]">
-                   <div className="flex justify-between items-start mb-6 border-b-2 border-zinc-100 pb-4">
+                   <div className="flex justify-between items-start mb-6 border-b-4 border-zinc-100 pb-6">
                       <div>
-                         <h2 className="text-3xl font-black uppercase">Analiza OK</h2>
-                         <p className="text-zinc-400 font-bold text-xs uppercase">Wykryto {drawingData.dimensions.length} pozycji</p>
+                         <h2 className="text-3xl font-black uppercase tracking-tighter">Wyniki Analizy</h2>
+                         <p className="text-zinc-400 font-bold text-xs uppercase mt-1">Status: Gotowy do exportu</p>
                       </div>
                       <button 
                         onClick={() => generateCBMReports(drawingData)}
-                        className="bg-black text-yellow-400 px-8 py-4 font-black uppercase text-sm hover:bg-yellow-400 hover:text-black transition-all border-4 border-black"
+                        className="bg-black text-yellow-400 px-10 py-5 font-black uppercase text-sm hover:bg-yellow-400 hover:text-black transition-all border-4 border-black active:scale-95"
                       >
-                        Generuj DOCX
+                        Pobierz DOCX
                       </button>
                    </div>
                    
-                   <div className="max-h-[500px] overflow-y-auto custom-scroll pr-4">
+                   <div className="max-h-[600px] overflow-y-auto custom-scroll pr-2">
                       <table className="w-full">
-                         <thead className="sticky top-0 bg-white">
+                         <thead className="sticky top-0 bg-white shadow-sm">
                             <tr className="text-[10px] font-black uppercase text-zinc-400 border-b-2 border-zinc-100">
                                <th className="py-4 text-left">Bąbelek</th>
                                <th className="py-4 text-left">Wymiar</th>
@@ -159,11 +143,11 @@ const App: React.FC = () => {
                          </thead>
                          <tbody className="divide-y divide-zinc-50">
                             {drawingData.dimensions.map((d, i) => (
-                              <tr key={i} className="group">
-                                <td className="py-4"><span className="bg-black text-white px-2 py-1 font-black">{d.balloonId}</span></td>
+                              <tr key={i} className="group hover:bg-zinc-50">
+                                <td className="py-4"><span className="bg-black text-white px-3 py-1 font-black text-sm">{d.balloonId}</span></td>
                                 <td className="py-4 font-bold text-sm text-zinc-700">{d.characteristic}</td>
-                                <td className="py-4 text-right font-black text-black group-hover:text-yellow-600">
-                                   {d.isWeld ? "OK" : d.results[0]}
+                                <td className="py-4 text-right font-black text-black">
+                                   {d.isWeld ? <span className="text-green-600">O.K.</span> : (d.results?.[0] || "---")}
                                 </td>
                               </tr>
                             ))}
@@ -177,13 +161,13 @@ const App: React.FC = () => {
       </main>
 
       {state === AppState.ANALYZING && (
-        <div className="fixed inset-0 bg-yellow-400 z-[100] flex flex-col items-center justify-center border-[20px] border-black text-center p-10">
-          <div className="w-32 h-32 bg-black flex items-center justify-center mb-12 animate-bounce">
+        <div className="fixed inset-0 bg-yellow-400 z-[200] flex flex-col items-center justify-center border-[20px] border-black text-center p-10">
+          <div className="w-32 h-32 bg-black flex items-center justify-center mb-12 animate-pulse">
              <div className="w-12 h-12 border-8 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
           <h2 className="text-6xl font-black uppercase italic tracking-tighter mb-4">Skanowanie AI</h2>
-          <div className="bg-black text-white px-6 py-2 font-black uppercase tracking-widest text-sm">Laboratorium CBM Polska • Analiza pikseli</div>
-          <p className="mt-8 font-bold text-black max-w-sm">System wyodrębnia bąbelki i generuje wyniki pomiarowe. Proszę czekać...</p>
+          <div className="bg-black text-white px-8 py-3 font-black uppercase tracking-widest text-sm">Laboratorium Metrologiczne CBM Polska</div>
+          <p className="mt-8 font-bold text-black max-w-sm uppercase text-xs">Trwa wyodrębnianie bąbelków z rysunku. Proszę nie odświeżać strony.</p>
         </div>
       )}
     </div>
