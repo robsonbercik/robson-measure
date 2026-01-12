@@ -3,16 +3,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DrawingData } from "../types";
 
 export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> => {
-  // Pobieranie klucza z bezpiecznego środowiska Vercel
+  // Direct use of process.env.API_KEY as per guidelines.
   const apiKey = process.env.API_KEY;
-
-  if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("KRYTYCZNY_BRAK_KLUCZA: Vercel nie przekazał klucza API do aplikacji.");
+  if (!apiKey) {
+    throw new Error("KRYTYCZNY_BLAD: Brak klucza API_KEY w srodowisku Vercel.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  
-  // Najnowszy model Gemini 3 Flash
   const modelName = 'gemini-3-flash-preview';
 
   try {
@@ -21,7 +18,7 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       contents: [
         {
           parts: [
-            { text: "Działaj jako ekspert metrologii CBM Polska. Wyodrębnij numery bąbelków, wymiary nominalne i tolerancje. Wygeneruj 3 przykładowe wyniki pomiarów mieszczące się w tolerancji. Zwróć dane w formacie JSON." },
+            { text: "Wyodrebnij dane metrologiczne: numer rysunku (drawingNumber), nazwa czesci (partName). Wyodrebnij wszystkie bablelki (balloonId), ich opis (characteristic) i wygeneruj 3 wyniki mieszczace sie w normie. Zwroc JSON." },
             { inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] || imageBase64 } }
           ]
         }
@@ -33,6 +30,7 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
           properties: {
             drawingNumber: { type: Type.STRING },
             partName: { type: Type.STRING },
+            reportDate: { type: Type.STRING },
             dimensions: {
               type: Type.ARRAY,
               items: {
@@ -40,7 +38,12 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
                 properties: {
                   balloonId: { type: Type.STRING },
                   characteristic: { type: Type.STRING },
+                  nominal: { type: Type.STRING },
+                  upperTol: { type: Type.STRING },
+                  lowerTol: { type: Type.STRING },
+                  unit: { type: Type.STRING },
                   isWeld: { type: Type.BOOLEAN },
+                  isGDT: { type: Type.BOOLEAN },
                   results: {
                     type: Type.ARRAY,
                     items: { type: Type.STRING }
@@ -50,17 +53,15 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
               }
             }
           },
-          required: ["drawingNumber", "dimensions"]
+          required: ["drawingNumber", "partName", "dimensions"]
         }
       }
     });
 
-    if (!response.text) throw new Error("AI_EMPTY_RESPONSE: Model nie zwrócił danych.");
-    return JSON.parse(response.text) as DrawingData;
+    if (!response.text) throw new Error("AI_NO_DATA");
+    return JSON.parse(response.text.trim()) as DrawingData;
   } catch (error: any) {
-    console.error("Szczegóły błędu AI:", error);
-    if (error.message?.includes("403")) throw new Error("BŁĄD_UPRAWNIEŃ: Twój klucz API nie ma dostępu do modelu Gemini 3.");
-    if (error.message?.includes("401")) throw new Error("BŁĄD_AUTORYZACJI: Klucz API jest nieprawidłowy.");
-    throw new Error(`BŁĄD_SYSTEMU: ${error.message || "Nieznany błąd komunikacji"}`);
+    console.error("AI Error:", error);
+    throw new Error(`KOMUNIKACJA_AI_BLAD: ${error.message}`);
   }
 };
