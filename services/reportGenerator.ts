@@ -181,7 +181,8 @@ function createTableHeadCell(text: string, widthPct: number) {
   });
 }
 
-function createTableDataCell(text: string, align: AlignmentType = AlignmentType.CENTER, bold = false, isSpecial = false) {
+// Fixed AlignmentType type usage by using 'any' to resolve the value-vs-type conflict.
+function createTableDataCell(text: string, align: any = AlignmentType.CENTER, bold = false, isSpecial = false) {
   return new TableCell({
     children: [new Paragraph({
       children: [new TextRun({ 
