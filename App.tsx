@@ -165,20 +165,23 @@ const App: React.FC = () => {
                    </div>
                    <button 
                      onClick={() => generateCBMReports(drawingData)}
-                     className="bg-black text-yellow-400 px-6 py-4 font-black uppercase text-xs hover:bg-yellow-400 hover:text-black transition-all border-2 border-black active:scale-95"
+                     className="bg-black text-yellow-400 px-6 py-4 font-black uppercase text-xs hover:bg-yellow-400 hover:text-black transition-all border-2 border-black active:scale-95 shadow-[4px_4px_0px_0px_rgba(250,204,21,1)]"
                    >
-                     Generuj Raporty
+                     Generuj Raport 1:1 CBM
                    </button>
                 </div>
                 
                 <div className="max-h-[500px] overflow-y-auto custom-scroll pr-4">
+                   <div className="bg-zinc-50 p-2 mb-4 border-l-4 border-yellow-400">
+                      <p className="text-[10px] uppercase font-bold text-zinc-500">Podgląd bąbelków:</p>
+                   </div>
                    {drawingData.dimensions.map((d, i) => (
                      <div key={i} className="flex items-center justify-between p-4 border-b border-zinc-100 hover:bg-zinc-50">
                         <div className="flex items-center gap-4">
                            <span className="bg-black text-white w-8 h-8 flex items-center justify-center font-black text-xs">{d.balloonId}</span>
                            <span className="font-bold text-sm text-zinc-600">{d.characteristic}</span>
                         </div>
-                        <span className="font-black text-sm">{d.results?.[0] || "O.K."}</span>
+                        <span className="font-black text-sm text-green-600">Gotowe</span>
                      </div>
                    ))}
                 </div>
@@ -197,7 +200,7 @@ const App: React.FC = () => {
           <h2 className="text-6xl font-black uppercase italic tracking-tighter mb-4">Analiza bąbelków...</h2>
           <div className="bg-black text-white px-8 py-2 font-black uppercase text-xs tracking-widest italic">Tryb: Gemini Flash (High Quota)</div>
           <p className="mt-8 font-bold text-black max-w-xs uppercase text-[10px] leading-relaxed">
-            AI wyodrębnia wymiary z bąbelków. Proszę czekać ok. 10 sekund.
+            AI wyodrębnia wymiary z bąbelków zgodnie z normą ISO 2768-m. Proszę czekać ok. 10 sekund.
           </p>
         </div>
       )}
