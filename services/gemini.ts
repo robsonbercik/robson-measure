@@ -3,14 +3,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DrawingData } from "../types";
 
 export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> => {
-  // Direct use of process.env.API_KEY as per guidelines.
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("KRYTYCZNY_BLAD: Brak klucza API_KEY w srodowisku Vercel.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
-  const modelName = 'gemini-3-flash-preview';
+  // SDK automatycznie użyje process.env.API_KEY zdefiniowanego w vite.config.ts
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  
+  // Do rysunków technicznych używamy modelu PRO dla najwyższej dokładności
+  const modelName = 'gemini-3-pro-preview';
 
   try {
     const response = await ai.models.generateContent({
@@ -18,7 +15,7 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       contents: [
         {
           parts: [
-            { text: "Wyodrebnij dane metrologiczne: numer rysunku (drawingNumber), nazwa czesci (partName). Wyodrebnij wszystkie bablelki (balloonId), ich opis (characteristic) i wygeneruj 3 wyniki mieszczace sie w normie. Zwroc JSON." },
+            { text: "Jesteś ekspertem metrologii w CBM Polska. Twoim zadaniem jest precyzyjne wyodrębnienie wszystkich wymiarów zaznaczonych bąbelkami z rysunku technicznego. Dla każdego bąbelka (balloonId) podaj opis wymiaru (characteristic) oraz wygeneruj 3 przykładowe wyniki pomiarowe (results) mieszczące się w standardowej tolerancji. Wyodrębnij też numer rysunku i nazwę części. Zwróć dane w formacie JSON." },
             { inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] || imageBase64 } }
           ]
         }
@@ -30,7 +27,6 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
           properties: {
             drawingNumber: { type: Type.STRING },
             partName: { type: Type.STRING },
-            reportDate: { type: Type.STRING },
             dimensions: {
               type: Type.ARRAY,
               items: {
@@ -38,12 +34,6 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
                 properties: {
                   balloonId: { type: Type.STRING },
                   characteristic: { type: Type.STRING },
-                  nominal: { type: Type.STRING },
-                  upperTol: { type: Type.STRING },
-                  lowerTol: { type: Type.STRING },
-                  unit: { type: Type.STRING },
-                  isWeld: { type: Type.BOOLEAN },
-                  isGDT: { type: Type.BOOLEAN },
                   results: {
                     type: Type.ARRAY,
                     items: { type: Type.STRING }
@@ -58,10 +48,16 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       }
     });
 
-    if (!response.text) throw new Error("AI_NO_DATA");
-    return JSON.parse(response.text.trim()) as DrawingData;
+    const text = response.text;
+    if (!text) throw new Error("Brak odpowiedzi od AI.");
+    
+    return JSON.parse(text.trim()) as DrawingData;
   } catch (error: any) {
-    console.error("AI Error:", error);
-    throw new Error(`KOMUNIKACJA_AI_BLAD: ${error.message}`);
+    console.error("Gemini Error:", error);
+    // Jeśli błąd to 403/401, oznacza to problem z samym kluczem w Google Cloud
+    if (error.message?.includes("API_KEY_INVALID")) {
+      throw new Error("Nieprawidłowy klucz API. Sprawdź czy projekt w Google AI Studio jest aktywny.");
+    }
+    throw new Error(`Błąd analizy obrazu: ${error.message}`);
   }
 };
