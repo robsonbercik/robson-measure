@@ -15,13 +15,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // Definiujemy konkretną ścieżkę
-      'process.env.API_KEY': JSON.stringify(apiKey),
-      // Definiujemy też cały obiekt jako fallback dla niektórych bibliotek
-      'process.env': {
-        API_KEY: apiKey,
-        NODE_ENV: JSON.stringify(mode)
-      }
+      // Definiujemy klucz jako stałą globalną dostępną w kodzie
+      'process.env.API_KEY': JSON.stringify(apiKey)
     },
     server: {
       port: 3000,
