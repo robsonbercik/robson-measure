@@ -38,16 +38,16 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6 font-mono border-[16px] border-black text-black">
         <div className="max-w-2xl w-full bg-black text-white p-12 shadow-[20px_20px_0px_0px_rgba(0,0,0,0.3)]">
           <div className="border-b-4 border-yellow-400 pb-6 mb-8">
-            <h1 className="text-5xl font-black uppercase tracking-tighter italic">AutoMeasure <span className="text-yellow-400">V4.3</span></h1>
-            <p className="text-yellow-400 font-bold mt-2 tracking-widest uppercase">System Metrologiczny CBM</p>
+            <h1 className="text-5xl font-black uppercase tracking-tighter italic">AutoMeasure <span className="text-yellow-400">V4.4</span></h1>
+            <p className="text-yellow-400 font-bold mt-2 tracking-widest uppercase">System Stabilny CBM</p>
           </div>
 
           <div className="space-y-6">
             <div className="bg-zinc-800 p-4 border-l-8 border-yellow-400">
                <p className="text-xs uppercase text-zinc-500 font-bold mb-1">Status Systemu:</p>
                <div className="flex justify-between items-center">
-                  <span className="font-bold">Laboratorium:</span>
-                  <span className="text-green-400">GOTOWY</span>
+                  <span className="font-bold">Model AI:</span>
+                  <span className="text-green-400">GEMINI 3 PRO</span>
                </div>
             </div>
 
@@ -57,10 +57,6 @@ const App: React.FC = () => {
             >
               URUCHOM PANEL
             </button>
-
-            <div className="text-[10px] text-zinc-500 uppercase leading-tight border-t border-zinc-800 pt-4">
-              Informacja: System korzysta z modelu Gemini 3 Pro. Upewnij sie, ze zmienna API_KEY jest poprawnie dodana w ustawieniach Vercel (Environment Variables).
-            </div>
           </div>
         </div>
       </div>
@@ -71,10 +67,10 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-zinc-100 flex flex-col font-mono text-black">
       <header className="bg-black text-white p-6 flex justify-between items-center border-b-8 border-yellow-400">
         <div className="flex items-center gap-4">
-           <div className="bg-yellow-400 text-black px-3 py-1 font-black">V4.3</div>
+           <div className="bg-yellow-400 text-black px-3 py-1 font-black">V4.4</div>
            <h1 className="font-black uppercase italic text-xl tracking-tighter">AutoMeasure <span className="text-yellow-400">Lab</span></h1>
         </div>
-        <button onClick={() => { setDrawingData(null); setErrorMessage(null); setIsStarted(false); }} className="text-yellow-400 hover:text-white font-bold text-xs uppercase underline">Wyjście</button>
+        <button onClick={() => { setDrawingData(null); setErrorMessage(null); setIsStarted(false); }} className="text-yellow-400 hover:text-white font-bold text-xs uppercase underline">Zamknij</button>
       </header>
 
       <main className="flex-1 p-8 max-w-7xl mx-auto w-full">
@@ -82,12 +78,16 @@ const App: React.FC = () => {
           <div className="bg-white border-8 border-black p-8 mb-12 shadow-[12px_12px_0px_0px_rgba(239,68,68,1)]">
             <div className="flex items-center gap-4 text-red-600 mb-6">
                <div className="w-12 h-12 bg-red-600 text-white flex items-center justify-center text-3xl font-black">!</div>
-               <h3 className="text-2xl font-black uppercase tracking-tighter">Blad Systemu</h3>
+               <h3 className="text-2xl font-black uppercase tracking-tighter">Błąd Połączenia</h3>
             </div>
-            <div className="bg-zinc-100 p-6 border-2 border-zinc-200 mb-6 font-mono text-sm break-all">
-              {errorMessage}
+            <div className="bg-zinc-100 p-6 border-2 border-zinc-200 mb-6 font-mono text-sm">
+              <p className="font-black text-black mb-2 uppercase text-xs">Komunikat techniczny:</p>
+              <code className="break-all">{errorMessage}</code>
+              <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-black text-xs uppercase font-bold leading-relaxed">
+                Ważne: Jeśli dodałeś klucz API przed chwilą, musisz wykonać REDEPLOY w panelu Vercel (Deployments -> Kliknij kropki -> Redeploy). Odświeżenie strony nie wystarczy!
+              </div>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="bg-black text-white px-6 py-2 uppercase font-black text-xs">Zamknij powiadomienie</button>
+            <button onClick={() => setErrorMessage(null)} className="bg-black text-white px-6 py-2 uppercase font-black text-xs">Rozumiem</button>
           </div>
         )}
 
@@ -98,29 +98,29 @@ const App: React.FC = () => {
               className="w-full max-w-2xl bg-white border-8 border-black p-20 cursor-pointer hover:bg-yellow-50 transition-all text-center group shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]"
             >
               <div className="text-6xl mb-8 group-hover:scale-110 transition-transform inline-block">📁</div>
-              <h2 className="text-3xl font-black uppercase mb-4 tracking-tighter">Wczytaj rysunek techniczny</h2>
-              <p className="text-zinc-500 font-bold uppercase text-xs tracking-widest">Akceptowane formaty: JPG, PNG</p>
+              <h2 className="text-3xl font-black uppercase mb-4 tracking-tighter">Wczytaj Rysunek (JPG)</h2>
+              <p className="text-zinc-500 font-bold uppercase text-xs tracking-widest">System automatycznie odczyta bąbelki</p>
               <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && processFile(e.target.files[0])} />
             </div>
           </div>
         ) : (
           <div className="grid lg:grid-cols-2 gap-12 animate-in fade-in duration-500">
              <div className="bg-black p-4 shadow-[15px_15px_0px_0px_rgba(0,0,0,0.1)] border-4 border-black">
-                <img src={previewImage!} className="w-full h-auto border-2 border-zinc-800" alt="Podglad" />
+                <img src={previewImage!} className="w-full h-auto border-2 border-zinc-800" alt="Podgląd" />
              </div>
              
              <div className="space-y-8">
                 <div className="bg-white border-8 border-black p-8 shadow-[10px_10px_0px_0px_rgba(250,204,21,1)]">
                    <div className="flex justify-between items-start mb-6 border-b-4 border-zinc-100 pb-6">
                       <div>
-                         <h2 className="text-3xl font-black uppercase tracking-tighter">Lista wymiarow</h2>
-                         <p className="text-zinc-400 font-bold text-xs uppercase mt-1">Liczba pozycji: {drawingData.dimensions.length}</p>
+                         <h2 className="text-3xl font-black uppercase tracking-tighter">Dane Ekstrakcji</h2>
+                         <p className="text-zinc-400 font-bold text-xs uppercase mt-1">Pozycje: {drawingData.dimensions.length}</p>
                       </div>
                       <button 
                         onClick={() => generateCBMReports(drawingData)}
                         className="bg-black text-yellow-400 px-10 py-5 font-black uppercase text-sm hover:bg-yellow-400 hover:text-black transition-all border-4 border-black active:scale-95"
                       >
-                        Pobierz raporty
+                        Generuj Raporty
                       </button>
                    </div>
                    
@@ -128,8 +128,8 @@ const App: React.FC = () => {
                       <table className="w-full">
                          <thead className="sticky top-0 bg-white">
                             <tr className="text-[10px] font-black uppercase text-zinc-400 border-b-2 border-zinc-100">
-                               <th className="py-4 text-left">Lp.</th>
-                               <th className="py-4 text-left">Charakterystyka</th>
+                               <th className="py-4 text-left">Bąbelek</th>
+                               <th className="py-4 text-left">Wymiar</th>
                                <th className="py-4 text-right">Wynik</th>
                             </tr>
                          </thead>
@@ -139,7 +139,7 @@ const App: React.FC = () => {
                                 <td className="py-4"><span className="bg-black text-white px-3 py-1 font-black text-sm">{d.balloonId}</span></td>
                                 <td className="py-4 font-bold text-sm text-zinc-700">{d.characteristic}</td>
                                 <td className="py-4 text-right font-black text-black">
-                                   {d.isWeld ? <span className="text-green-600">OK</span> : (d.results?.[0] || "---")}
+                                   {d.isWeld ? <span className="text-green-600">O.K.</span> : (d.results?.[0] || "---")}
                                 </td>
                               </tr>
                             ))}
@@ -157,9 +157,9 @@ const App: React.FC = () => {
           <div className="w-32 h-32 bg-black flex items-center justify-center mb-12 animate-pulse">
              <div className="w-12 h-12 border-8 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <h2 className="text-6xl font-black uppercase italic tracking-tighter mb-4">Analiza AI</h2>
-          <div className="bg-black text-white px-8 py-3 font-black uppercase tracking-widest text-sm">Trwa przetwarzanie obrazu</div>
-          <p className="mt-8 font-bold text-black max-w-sm uppercase text-xs">System wyodrebnia bablelki i dane metrologiczne. Moze to potrwac do 30 sekund.</p>
+          <h2 className="text-6xl font-black uppercase italic tracking-tighter mb-4">Praca AI</h2>
+          <div className="bg-black text-white px-8 py-3 font-black uppercase tracking-widest text-sm">Przetwarzanie w toku...</div>
+          <p className="mt-8 font-bold text-black max-w-sm uppercase text-xs">Analizujemy rysunek za pomocą modelu Gemini 3 Pro. To potrwa kilkanaście sekund.</p>
         </div>
       )}
     </div>
