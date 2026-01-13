@@ -6,21 +6,18 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
   const apiKey = process.env.API_KEY;
   
   if (!apiKey || apiKey === "undefined") {
-    throw new Error("Brak klucza API. Wpisz go w Vercel i wykonaj ponowne wdrożenie (REDEPLOY) z opcją \"Clear Cache\".");
+    throw new Error("Klucz API nie jest skonfigurowany.");
   }
 
-  // Zgodnie z wytycznymi inicjalizujemy klienta przekazując obiekt z apiKey
   const ai = new GoogleGenAI({ apiKey });
-  // Model gemini-3-flash-preview jest optymalny dla zadań analizy obrazów przy zachowaniu limitów darmowych
   const modelName = 'gemini-3-flash-preview';
 
   try {
-    // Zastosowano zalecaną strukturę contents: { parts: [...] } dla zapytań multimodalnych (tekst + obraz)
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: modelName,
       contents: {
         parts: [
-          { text: "Jesteś ekspertem kontroli jakości w CBM Polska. Przeanalizuj rysunek techniczny. Podaj: numer rysunku (drawingNumber), nazwę części (partName). Wyodrębnij wszystkie bąbelki: numer (balloonId), charakterystyka (characteristic) i wygeneruj dla każdego 3 przykładowe wyniki (results). Zwróć JSON." },
+          { text: "Jesteś ekspertem metrologii Robsonbercik. Przeanalizuj rysunek techniczny. Wyodrębnij: drawingNumber, partName oraz listę bąbelków (balloonId). Dla każdego bąbelka podaj pełną charakterystykę (characteristic) oraz wygeneruj TRZY różne wyniki pomiaru (results) mieszczące się w tolerancji (np. dla wymiaru 10 +/-0.1 wyniki mogą być 10,02, 9,98, 10,05). Zwróć JSON." },
           { inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] || imageBase64 } }
         ]
       },
@@ -40,7 +37,9 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
                   characteristic: { type: Type.STRING },
                   results: {
                     type: Type.ARRAY,
-                    items: { type: Type.STRING }
+                    items: { type: Type.STRING },
+                    minItems: 3,
+                    maxItems: 3
                   }
                 },
                 required: ["balloonId", "characteristic", "results"]
@@ -52,17 +51,12 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       }
     });
 
-    // Korzystamy z właściwości .text (nie metody .text()) obiektu GenerateContentResponse
     const text = response.text;
-    if (!text) throw new Error("Odpowiedź AI jest pusta.");
+    if (!text) throw new Error("AI nie zwróciło danych.");
     
     return JSON.parse(text.trim()) as DrawingData;
   } catch (error: any) {
     console.error("Gemini Error:", error);
-    // Obsługa limitów i błędów sieciowych API
-    if (error.message?.includes("429") || error.message?.toLowerCase().includes("quota")) {
-      throw new Error("PRZEKROCZONO LIMIT: Skorzystaj z modelu Flash lub podepnij kartę w Google AI Studio, aby zwiększyć limit zapytania.");
-    }
-    throw new Error(`Błąd połączenia z AI: ${error.message || "Błąd modelu"}`);
+    throw new Error(`Błąd AI: ${error.message || "Błąd komunikacji"}`);
   }
 };
