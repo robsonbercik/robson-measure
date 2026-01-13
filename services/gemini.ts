@@ -17,7 +17,7 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       model: modelName,
       contents: {
         parts: [
-          { text: "Jesteś ekspertem metrologii Robsonbercik. Przeanalizuj rysunek techniczny. Wyodrębnij: drawingNumber, partName oraz listę bąbelków (balloonId). Dla każdego bąbelka podaj charakterystykę (characteristic) - jeśli to GD&T, podaj typ (np. Profile of a line), wartość i bazę. Wygeneruj TRZY różne wyniki pomiaru (results) mieszczące się w tolerancji. NIE używaj słów 'linear' czy 'basic dimension' w opisie. Zwróć JSON." },
+          { text: "Jesteś ekspertem metrologii Robsonbercik. Przeanalizuj rysunek techniczny. Wyodrębnij: drawingNumber, partName oraz listę bąbelków (balloonId). Dla każdego bąbelka podaj charakterystykę (characteristic). UŻYWAJ WYŁĄCZNIE CYFR I SYMBOLI. Zakaz używania słów: 'thickness', 'break edge', 'chamfer', 'radius', 'linear', 'basic', 'dimension', 'typical', 'places', 'fillet', 'weld', 'spoin'. \n\nFORMATOWANIE SPAWÓW (Ważne!): Używaj formatu: [rodzaj][wielkość] [symbol] [parametry] (opcjonalnie dodatki). \nPrzykłady:\n- Spoina pachwinowa a=4 o długości 45x4.9: 'a4 △ 45x4.9 (L-M)'\n- Spoina czołowa V: '⌵ 5.0'\nSymbole: △ (pachwinowa), ⌵ (czołowa V).\n\nGD&T: 'Symbol | Wartość | Baza' (np. '⌒ | 1.0 | A').\n\nWygeneruj TRZY różne wyniki pomiaru (results). Zwróć JSON." },
           { inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] || imageBase64 } }
         ]
       },
