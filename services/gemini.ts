@@ -17,7 +17,7 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       model: modelName,
       contents: {
         parts: [
-          { text: "Jesteś ekspertem metrologii Robsonbercik. Przeanalizuj rysunek techniczny. Wyodrębnij: drawingNumber, partName oraz listę bąbelków (balloonId). Dla każdego bąbelka podaj pełną charakterystykę (characteristic) oraz wygeneruj TRZY różne wyniki pomiaru (results) mieszczące się w tolerancji (np. dla wymiaru 10 +/-0.1 wyniki mogą być 10,02, 9,98, 10,05). Zwróć JSON." },
+          { text: "Jesteś ekspertem metrologii Robsonbercik. Przeanalizuj rysunek techniczny. Wyodrębnij: drawingNumber, partName oraz listę bąbelków (balloonId). Dla każdego bąbelka podaj charakterystykę (characteristic) - jeśli to GD&T, podaj typ (np. Profile of a line), wartość i bazę. Wygeneruj TRZY różne wyniki pomiaru (results) mieszczące się w tolerancji. NIE używaj słów 'linear' czy 'basic dimension' w opisie. Zwróć JSON." },
           { inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] || imageBase64 } }
         ]
       },
