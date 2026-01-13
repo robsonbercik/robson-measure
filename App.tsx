@@ -49,11 +49,26 @@ const App: React.FC = () => {
   };
 
   const cleanupText = (text: string) => {
+    // Agresywne usuwanie słów opisowych, pozostawiając cyfry i symbole.
+    // Zachowujemy 'a' i 'z' na początku słów tylko jeśli towarzyszą im cyfry (oznaczenia spoin).
     return text
+      .replace(/thickness/gi, '')
+      .replace(/break edge/gi, '')
+      .replace(/chamfer/gi, '')
+      .replace(/radius/gi, '')
       .replace(/linear/gi, '')
       .replace(/basic dimension/gi, '')
       .replace(/basic/gi, '')
       .replace(/dimension/gi, '')
+      .replace(/typical/gi, '')
+      .replace(/typ\./gi, '')
+      .replace(/places/gi, '')
+      .replace(/datum/gi, '')
+      .replace(/weld/gi, '')
+      .replace(/spoin/gi, '')
+      .replace(/fillet/gi, '')
+      .replace(/a=/gi, 'a')
+      .replace(/z=/gi, 'z')
       .replace(/\s+/g, ' ')
       .trim();
   };
@@ -76,32 +91,54 @@ const App: React.FC = () => {
     if (c.includes('ø') || c.includes('diameter')) return "⌀";
     
     // Spoiny
-    if (c.includes('pachwin') || c.includes('fillet')) return "△";
-    if (c.includes('v weld') || c.includes('spoin v')) return "⌵";
-    if (c.includes('weld') || c.includes('spoin') || c.includes('a=')) return "🛠️";
+    if (c.includes('△') || c.includes('pachwin')) return "△";
+    if (c.includes('⌵') || c.includes('v weld')) return "⌵";
     
     return "";
   };
 
   const formatISOGDT = (char: string) => {
-    const cleaned = cleanupText(char);
-    const symbol = getISOSymbol(cleaned);
+    const symbol = getISOSymbol(char);
+    
+    // Jeśli to spoina z trójkątem i już jest sformatowana przez AI (np. a4 △ 45x4.9)
+    if (char.includes('△') || char.includes('⌵')) {
+      return cleanupText(char);
+    }
+
+    const cleaned = cleanupText(char)
+      .replace(/profile of a line/gi, '')
+      .replace(/profile of a surface/gi, '')
+      .replace(/position/gi, '')
+      .replace(/perpendicularity/gi, '')
+      .replace(/parallelism/gi, '')
+      .replace(/flatness/gi, '')
+      .replace(/concentricity/gi, '')
+      .replace(/angularity/gi, '')
+      .replace(/circularity/gi, '')
+      .replace(/cylindricity/gi, '')
+      .replace(/straightness/gi, '')
+      .replace(/runout/gi, '')
+      .replace(/diameter/gi, '')
+      .replace(/ø/gi, '')
+      .trim();
     
     if (!symbol) return cleaned;
 
-    // Próba inteligentnego formatowania Symbol | Wartość | Baza
-    // Szukamy liczb i słowa "Datum"
-    const valueMatch = cleaned.match(/(\d+[.,]\d+|\d+)/);
-    const datumMatch = cleaned.match(/datum\s+([A-Z])/i);
-    
-    const value = valueMatch ? valueMatch[0] : "";
-    const datum = datumMatch ? datumMatch[1].toUpperCase() : "";
+    // Próba formatowania Symbol | Wartość | Baza
+    const parts = cleaned.split(' ').filter(p => p.length > 0);
+    const value = parts[0] || "";
+    const datum = parts.slice(1).join(' ').toUpperCase();
 
-    if (value && symbol !== "⌀" && symbol !== "🛠️") {
+    // Specjalne traktowanie spoin, jeśli symbol został wykryty ale nie ma go w tekście
+    if (symbol === "△" || symbol === "⌵") {
+       return `${cleaned.startsWith('a') || cleaned.startsWith('z') ? '' : 'a'}${cleaned.replace(symbol, '').trim()} ${symbol}`;
+    }
+
+    if (value && symbol !== "⌀") {
       return `${symbol} | ${value}${datum ? ` | ${datum}` : ''}`;
     }
 
-    if (symbol === "⌀") return `${symbol}${cleaned.replace(/diameter|ø/gi, '').trim()}`;
+    if (symbol === "⌀") return `${symbol}${cleaned}`;
     
     return `${symbol} ${cleaned}`;
   };
@@ -136,8 +173,8 @@ const App: React.FC = () => {
           
           <div className="mt-10 pt-8 border-t border-slate-50 flex justify-center gap-8 text-[9px] uppercase font-black text-slate-300 tracking-widest">
             <span>ISO 1101</span>
-            <span>ASME Y14.5</span>
-            <span>ISO 2553</span>
+            <span>WELD ISO 2553</span>
+            <span>GD&T ASME</span>
           </div>
         </div>
       </div>
@@ -174,7 +211,7 @@ const App: React.FC = () => {
             >
               <div className="text-8xl mb-8 group-hover:scale-110 transition-transform inline-block">📁</div>
               <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">Wczytaj Rysunek</h2>
-              <p className="text-slate-400 text-sm font-medium">Analiza bąbelków i charakterystyk ISO</p>
+              <p className="text-slate-400 text-sm font-medium">Analiza spoin i bąbelków technicznych</p>
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -220,7 +257,7 @@ const App: React.FC = () => {
                     <thead>
                       <tr className="bg-slate-50/50 text-slate-400 uppercase text-[10px] tracking-[0.2em] font-black">
                         <th className="p-6 border-b border-slate-100 text-left w-20">Lp</th>
-                        <th className="p-6 border-b border-slate-100 text-left">Charakterystyka</th>
+                        <th className="p-6 border-b border-slate-100 text-left">Charakterystyka ISO</th>
                         <th className="p-6 border-b border-slate-100 text-center">W1</th>
                         <th className="p-6 border-b border-slate-100 text-center">W2</th>
                         <th className="p-6 border-b border-slate-100 text-center">W3</th>
@@ -264,7 +301,7 @@ const App: React.FC = () => {
                 </div>
                 
                 <p className="mt-10 text-[11px] text-slate-400 font-bold uppercase tracking-widest text-center opacity-60">
-                   System Wspomagania Metrologii Robsonbercik
+                   RobsonbercikComputers © 2025
                 </p>
              </div>
           </div>
@@ -285,7 +322,7 @@ const App: React.FC = () => {
             </p>
           </div>
           <div className="mt-16 bg-white/5 px-8 py-3 rounded-full text-[10px] text-white/40 font-bold uppercase tracking-[0.5em]">
-            ISO Standard Analysis in Progress
+            ISO WELD & GD&T ANALYSIS
           </div>
         </div>
       )}
