@@ -7,7 +7,7 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
   const apiKey = process.env.API_KEY || (process.env as any).API_KEY;
   
   if (!apiKey || apiKey === "undefined") {
-    throw new Error("Klucz API nie jest dostępny w środowisku przeglądarki. Upewnij się, że dodałeś go w Vercel i wykonałeś Redeploy (z odświeżeniem Cache).");
+    throw new Error("Brak klucza API. Wpisz go w Vercel i wykonaj ponowne wdrożenie (REDEPLOY) z opcją \"Clear Cache\".");
   }
 
   const ai = new GoogleGenAI({ apiKey });
