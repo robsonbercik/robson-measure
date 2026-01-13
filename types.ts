@@ -1,15 +1,20 @@
+
 export interface Dimension {
   balloonId: string;
+  nominal?: string;
+  upperTol?: string;
+  lowerTol?: string;
   characteristic: string;
-  results: [string, string, string];
+  unit?: string;
   isWeld?: boolean;
   isGDT?: boolean;
+  results: string[]; // Zmieniono z [string, string, string] na string[] dla elastyczności
 }
 
 export interface DrawingData {
   drawingNumber: string;
   partName: string;
-  reportDate: string;
+  reportDate?: string;
   dimensions: Dimension[];
 }
 
