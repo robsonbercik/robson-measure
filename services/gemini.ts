@@ -3,10 +3,14 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DrawingData } from "../types";
 
 export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> => {
-  // SDK automatycznie użyje process.env.API_KEY zdefiniowanego w vite.config.ts
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  // Klucz jest wstrzykiwany przez Vite w procesie budowania
+  const apiKey = process.env.API_KEY;
   
-  // Do rysunków technicznych używamy modelu PRO dla najwyższej dokładności
+  if (!apiKey || apiKey === "undefined" || apiKey.length < 5) {
+    throw new Error("BRAK_KLUCZA: Klucz API nie został dostarczony do aplikacji podczas budowania (Build Time). Sprawdź zmienne środowiskowe na Vercel.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   const modelName = 'gemini-3-pro-preview';
 
   try {
@@ -15,7 +19,7 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
       contents: [
         {
           parts: [
-            { text: "Jesteś ekspertem metrologii w CBM Polska. Twoim zadaniem jest precyzyjne wyodrębnienie wszystkich wymiarów zaznaczonych bąbelkami z rysunku technicznego. Dla każdego bąbelka (balloonId) podaj opis wymiaru (characteristic) oraz wygeneruj 3 przykładowe wyniki pomiarowe (results) mieszczące się w standardowej tolerancji. Wyodrębnij też numer rysunku i nazwę części. Zwróć dane w formacie JSON." },
+            { text: "Działaj jako ekspert metrologii w firmie CBM Polska. Przeanalizuj rysunek techniczny i wyodrębnij: numer rysunku (drawingNumber), nazwę części (partName). Następnie znajdź wszystkie bąbelki (balloonId), ich opisy (characteristic) oraz zaproponuj 3 przykładowe wyniki (results) mieszczące się w typowych tolerancjach dla tych wymiarów. Zwróć dane wyłącznie w formacie JSON." },
             { inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] || imageBase64 } }
           ]
         }
@@ -49,15 +53,16 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
     });
 
     const text = response.text;
-    if (!text) throw new Error("Brak odpowiedzi od AI.");
+    if (!text) throw new Error("AI zwróciło pustą odpowiedź.");
     
     return JSON.parse(text.trim()) as DrawingData;
   } catch (error: any) {
-    console.error("Gemini Error:", error);
-    // Jeśli błąd to 403/401, oznacza to problem z samym kluczem w Google Cloud
-    if (error.message?.includes("API_KEY_INVALID")) {
-      throw new Error("Nieprawidłowy klucz API. Sprawdź czy projekt w Google AI Studio jest aktywny.");
+    console.error("Gemini Critical Error:", error);
+    
+    if (error.status === 403 || error.message?.includes("API_KEY_INVALID")) {
+      throw new Error("Klucz API jest nieprawidłowy lub zablokowany. Sprawdź projekt w Google AI Studio.");
     }
-    throw new Error(`Błąd analizy obrazu: ${error.message}`);
+    
+    throw new Error(`Błąd analizy Gemini: ${error.message || "Nieznany błąd serwera AI"}`);
   }
 };
