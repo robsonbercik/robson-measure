@@ -3,8 +3,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DrawingData } from "../types";
 
 export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> => {
-  // Próbujemy pobrać klucz z różnych możliwych wstrzyknięć Vite
-  const apiKey = process.env.API_KEY || (process.env as any).API_KEY;
+  // Próbujemy pobrać klucz z wstrzykniętego process.env.API_KEY
+  const apiKey = process.env.API_KEY;
   
   if (!apiKey || apiKey === "undefined") {
     throw new Error("Brak klucza API. Wpisz go w Vercel i wykonaj ponowne wdrożenie (REDEPLOY) z opcją \"Clear Cache\".");
