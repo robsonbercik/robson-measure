@@ -1,10 +1,12 @@
 
+
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
   // Wczytujemy zmienne ze środowiska (Vercel)
-  const env = loadEnv(mode, process.cwd(), '');
+  // Fix: Zastąpiono process.cwd() kropką '.', aby uniknąć problemów z typowaniem 'Process' w konfiguracji Vite.
+  const env = loadEnv(mode, '.', '');
   const apiKey = env.API_KEY || process.env.API_KEY || "";
 
   console.log(`--- VITE BUILD DEBUG ---`);
