@@ -3,7 +3,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DrawingData } from "../types";
 
 export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> => {
-  // Próbujemy pobrać klucz z wstrzykniętego process.env.API_KEY
   const apiKey = process.env.API_KEY;
   
   if (!apiKey || apiKey === "undefined") {
@@ -11,7 +10,8 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  const modelName = 'gemini-3-pro-preview';
+  // Zmieniono na flash, który ma znacznie wyższe limity darmowe niż model pro
+  const modelName = 'gemini-3-flash-preview';
 
   try {
     const response = await ai.models.generateContent({
@@ -58,6 +58,10 @@ export const analyzeDrawing = async (imageBase64: string): Promise<DrawingData> 
     return JSON.parse(text.trim()) as DrawingData;
   } catch (error: any) {
     console.error("Gemini Error:", error);
+    // Bardziej przyjazny komunikat o limitach
+    if (error.message?.includes("429") || error.message?.toLowerCase().includes("quota")) {
+      throw new Error("PRZEKROCZONO LIMIT: Skorzystaj z modelu Flash lub podepnij kartę w Google AI Studio, aby zwiększyć limit zapytania.");
+    }
     throw new Error(`Błąd połączenia z AI: ${error.message || "Błąd modelu"}`);
   }
 };
