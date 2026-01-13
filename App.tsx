@@ -12,7 +12,6 @@ const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Bezpieczny dostęp do klucza (Vite zamienia to podczas buildu)
   const getApiKey = () => {
     try {
       return process.env.API_KEY;
@@ -44,7 +43,11 @@ const App: React.FC = () => {
         setDrawingData(data);
         setState(AppState.READY);
       } catch (err: any) {
-        setErrorMessage(err.message || "Błąd analizy AI.");
+        let msg = err.message || "Błąd analizy AI.";
+        if (msg.includes("429") || msg.includes("quota") || msg.includes("LIMIT")) {
+          msg = "PRZEKROCZONO LIMIT GOOGLE: Model Flash zazwyczaj działa, ale Twoje konto może mieć tymczasową blokadę. Spróbuj za minutę lub zmień klucz w Vercel.";
+        }
+        setErrorMessage(msg);
         setState(AppState.IDLE);
       }
     };
@@ -60,11 +63,11 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6 font-mono border-[16px] border-black text-black">
         <div className="max-w-2xl w-full bg-black text-white p-12 shadow-[20px_20px_0px_0px_rgba(0,0,0,0.3)]">
           <div className="border-b-4 border-yellow-400 pb-6 mb-8">
-            <h1 className="text-4xl font-black uppercase tracking-tighter italic">
-              <span className="text-yellow-400">Robsonbercik</span> <br/>
-              drawing reader
+            <h1 className="text-4xl font-black uppercase tracking-tighter italic leading-tight">
+              <span className="text-yellow-400 italic">Robsonbercik</span> <br/>
+              <span className="italic">drawing reader</span>
             </h1>
-            <p className="text-zinc-500 font-bold mt-2 tracking-widest uppercase text-xs">CBM Polska Laboratory System V4.9</p>
+            <p className="text-zinc-500 font-bold mt-2 tracking-widest uppercase text-xs">CBM Polska Metrology System V4.11</p>
           </div>
 
           <div className="space-y-6">
@@ -76,7 +79,7 @@ const App: React.FC = () => {
                   </span>
                </div>
                <div className="flex justify-between items-center">
-                  <span className="text-xs uppercase font-bold text-zinc-500">Klucz API (Vercel):</span>
+                  <span className="text-xs uppercase font-bold text-zinc-500">Klucz API:</span>
                   <span className="text-zinc-400 text-xs font-mono bg-black/50 px-2">{keyPreview}</span>
                </div>
             </div>
@@ -103,9 +106,9 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-zinc-100 flex flex-col font-mono text-black">
       <header className="bg-black text-white p-6 flex justify-between items-center border-b-8 border-yellow-400">
         <div className="flex items-center gap-4">
-           <div className="bg-yellow-400 text-black px-3 py-1 font-black">V4.9</div>
+           <div className="bg-yellow-400 text-black px-3 py-1 font-black">V4.11</div>
            <h1 className="font-black uppercase italic text-xl tracking-tighter">
-             <span className="text-yellow-400">Robsonbercik</span> drawing reader
+             <span className="text-yellow-400 italic">Robsonbercik</span> <span className="italic">drawing reader</span>
            </h1>
         </div>
         <button 
@@ -120,11 +123,13 @@ const App: React.FC = () => {
         {errorMessage && (
           <div className="bg-white border-8 border-black p-8 mb-12 shadow-[12px_12px_0px_0px_rgba(239,68,68,1)]">
             <div className="flex items-center gap-4 text-red-600 mb-6 font-black">
-               <div className="w-12 h-12 bg-red-600 text-white flex items-center justify-center text-3xl">!</div>
-               <h3 className="text-2xl uppercase tracking-tighter">Błąd Systemowy</h3>
+               <div className="w-12 h-12 bg-red-600 text-white flex items-center justify-center text-3xl font-black">!</div>
+               <h3 className="text-2xl uppercase tracking-tighter">Status Systemu</h3>
             </div>
-            <p className="bg-zinc-100 p-4 font-mono text-sm break-all mb-6">{errorMessage}</p>
-            <button onClick={() => setErrorMessage(null)} className="bg-black text-white px-8 py-3 uppercase font-black text-xs">Zamknij</button>
+            <div className="bg-zinc-100 p-4 border-l-4 border-red-600 mb-6">
+               <p className="font-mono text-sm break-words text-red-700 font-bold">{errorMessage}</p>
+            </div>
+            <button onClick={() => setErrorMessage(null)} className="bg-black text-white px-8 py-3 uppercase font-black text-xs hover:bg-zinc-800 transition-colors">Rozumiem</button>
           </div>
         )}
 
@@ -134,9 +139,9 @@ const App: React.FC = () => {
               onClick={() => fileInputRef.current?.click()}
               className="w-full max-w-2xl bg-white border-8 border-black p-20 cursor-pointer hover:bg-yellow-50 transition-all text-center group shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]"
             >
-              <div className="text-6xl mb-8 group-hover:rotate-12 transition-transform inline-block">📄</div>
-              <h2 className="text-3xl font-black uppercase mb-4 tracking-tighter italic">Wczytaj Rysunek Z BĄBELKAMI</h2>
-              <p className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Obsługiwane formaty: JPG, PNG (Max 10MB)</p>
+              <div className="text-6xl mb-8 group-hover:scale-110 transition-transform inline-block">📄</div>
+              <h2 className="text-3xl font-black uppercase mb-4 tracking-tighter italic">WCZYTAJ RYSUNEK Z BĄBELKAMI</h2>
+              <p className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Kliknij, aby wybrać plik rysunku</p>
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -149,7 +154,7 @@ const App: React.FC = () => {
         ) : (
           <div className="grid lg:grid-cols-2 gap-12 animate-in fade-in duration-500">
              <div className="bg-black p-4 border-4 border-black">
-                <img src={previewImage!} className="w-full h-auto" alt="Preview" />
+                <img src={previewImage!} className="w-full h-auto border-2 border-zinc-800" alt="Podgląd" />
              </div>
              
              <div className="bg-white border-8 border-black p-8 shadow-[10px_10px_0px_0px_rgba(250,204,21,1)]">
@@ -162,7 +167,7 @@ const App: React.FC = () => {
                      onClick={() => generateCBMReports(drawingData)}
                      className="bg-black text-yellow-400 px-6 py-4 font-black uppercase text-xs hover:bg-yellow-400 hover:text-black transition-all border-2 border-black active:scale-95"
                    >
-                     Generuj DOCX
+                     Generuj Raporty
                    </button>
                 </div>
                 
@@ -173,12 +178,12 @@ const App: React.FC = () => {
                            <span className="bg-black text-white w-8 h-8 flex items-center justify-center font-black text-xs">{d.balloonId}</span>
                            <span className="font-bold text-sm text-zinc-600">{d.characteristic}</span>
                         </div>
-                        <span className="font-black text-sm">{d.results?.[0] || "---"}</span>
+                        <span className="font-black text-sm">{d.results?.[0] || "O.K."}</span>
                      </div>
                    ))}
                 </div>
                 
-                <button onClick={() => setDrawingData(null)} className="w-full mt-8 py-3 text-zinc-400 font-bold uppercase text-[10px] hover:text-black transition-colors underline">Zmień plik</button>
+                <button onClick={() => setDrawingData(null)} className="w-full mt-8 py-3 text-zinc-400 font-bold uppercase text-[10px] hover:text-black transition-colors underline">Zmień plik rysunku</button>
              </div>
           </div>
         )}
@@ -189,10 +194,10 @@ const App: React.FC = () => {
           <div className="w-32 h-32 bg-black flex items-center justify-center mb-12 animate-spin duration-[2000ms]">
              <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full"></div>
           </div>
-          <h2 className="text-6xl font-black uppercase italic tracking-tighter mb-4">Skanowanie bąbelków...</h2>
-          <div className="bg-black text-white px-8 py-2 font-black uppercase text-xs tracking-widest">Model: Gemini 3 Pro Vision</div>
+          <h2 className="text-6xl font-black uppercase italic tracking-tighter mb-4">Analiza bąbelków...</h2>
+          <div className="bg-black text-white px-8 py-2 font-black uppercase text-xs tracking-widest italic">Tryb: Gemini Flash (High Quota)</div>
           <p className="mt-8 font-bold text-black max-w-xs uppercase text-[10px] leading-relaxed">
-            System wyodrębnia bąbelki z rysunku technicznego. Może to potrwać do 20 sekund.
+            AI wyodrębnia wymiary z bąbelków. Proszę czekać ok. 10 sekund.
           </p>
         </div>
       )}
