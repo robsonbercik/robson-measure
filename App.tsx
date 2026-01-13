@@ -49,8 +49,7 @@ const App: React.FC = () => {
   };
 
   const cleanupText = (text: string) => {
-    // Agresywne usuwanie słów opisowych, pozostawiając cyfry i symbole.
-    // Zachowujemy 'a' i 'z' na początku słów tylko jeśli towarzyszą im cyfry (oznaczenia spoin).
+    // Agresywne usuwanie słów opisowych dla czystego zapisu technicznego.
     return text
       .replace(/thickness/gi, '')
       .replace(/break edge/gi, '')
@@ -98,13 +97,12 @@ const App: React.FC = () => {
   };
 
   const formatISOGDT = (char: string) => {
-    const symbol = getISOSymbol(char);
-    
-    // Jeśli to spoina z trójkątem i już jest sformatowana przez AI (np. a4 △ 45x4.9)
+    // Jeśli AI już dostarczyło idealny format (np. a4 △ 45x4.9 (L-M)), czyścimy tylko resztki tekstu.
     if (char.includes('△') || char.includes('⌵')) {
       return cleanupText(char);
     }
 
+    const symbol = getISOSymbol(char);
     const cleaned = cleanupText(char)
       .replace(/profile of a line/gi, '')
       .replace(/profile of a surface/gi, '')
@@ -124,15 +122,15 @@ const App: React.FC = () => {
     
     if (!symbol) return cleaned;
 
-    // Próba formatowania Symbol | Wartość | Baza
-    const parts = cleaned.split(' ').filter(p => p.length > 0);
-    const value = parts[0] || "";
-    const datum = parts.slice(1).join(' ').toUpperCase();
-
-    // Specjalne traktowanie spoin, jeśli symbol został wykryty ale nie ma go w tekście
+    // Specjalne traktowanie spoin, jeśli symbol został wykryty ale nie ma go w tekście.
     if (symbol === "△" || symbol === "⌵") {
        return `${cleaned.startsWith('a') || cleaned.startsWith('z') ? '' : 'a'}${cleaned.replace(symbol, '').trim()} ${symbol}`;
     }
+
+    // GD&T Format: Symbol | Wartość | Baza
+    const parts = cleaned.split(' ').filter(p => p.length > 0);
+    const value = parts[0] || "";
+    const datum = parts.slice(1).join(' ').toUpperCase();
 
     if (value && symbol !== "⌀") {
       return `${symbol} | ${value}${datum ? ` | ${datum}` : ''}`;
@@ -211,7 +209,7 @@ const App: React.FC = () => {
             >
               <div className="text-8xl mb-8 group-hover:scale-110 transition-transform inline-block">📁</div>
               <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">Wczytaj Rysunek</h2>
-              <p className="text-slate-400 text-sm font-medium">Analiza spoin i bąbelków technicznych</p>
+              <p className="text-slate-400 text-sm font-medium">Analiza bąbelków i charakterystyk technicznych</p>
               <input 
                 type="file" 
                 ref={fileInputRef} 
